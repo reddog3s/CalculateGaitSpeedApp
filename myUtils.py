@@ -4,11 +4,12 @@ from scipy import signal
 import numpy as np
 from scipy.spatial.transform import Rotation as R
 
-def resample(data, fs):
+def resample(data, fs, cutoff = 0.7):
     """
     ## Arguments:
     data - dataframe to resample \n
     fs - sampling frequency [Hz] \n
+    cutoff - cutoff time in seconds [s], it cuts first seconds of data  \n
 
     ## Returns:
     data - resampled dataframe with ['time_resampled'] column \n
@@ -30,12 +31,19 @@ def resample(data, fs):
     unit_of_conv_str = str(unit_of_conv) + 'S'
 
     data['time_resampled'] = (data.index - pandas.Timestamp("1970-01-01")) // pandas.Timedelta(unit_of_conv_str) # conversion from new date to unix time
-    t_resampled = data['time_resampled'] 
-    t_resampled = t_resampled - data['time_resampled'][0] #normalization of time (start from 0)
+    #t_resampled = data['time_resampled'] 
+    #t_resampled = t_resampled - data['time_resampled'][0] #normalization of time (start from 0)
+    data['time_resampled'] = data['time_resampled'] - data['time_resampled'][0]
+
+    cutoff = cutoff / unit_of_conv
+    df_closest = data.iloc[(data['time_resampled']-cutoff).abs().argsort()[:1]]
+    closest_list = df_closest['time_resampled'].tolist()
+    cut_data = data[data['time_resampled'] > closest_list[0]]
+    t_resampled = cut_data['time_resampled'] 
     t_resampled = t_resampled / (1/unit_of_conv)
 
 
-    return data, t_resampled
+    return cut_data, t_resampled
 
 
 def change_orientation(coords, euler):
@@ -56,6 +64,17 @@ def change_orientation(coords, euler):
 
 
 def apply_filters(az, ay, fs):
+    """
+    Applies 4th order Butterworth lowpass filter with cutoff frequency of 20 Hz to both az and ay. \n
+    After that applies 4th order Butterworth lowpass filter with cutoff frequency of 2 Hz to ay.
+    ## Arguments:
+    az - vertical acceleration \n
+    ay - horizontal (anterior-posterior) acceleration \n
+    fs - sampling frequency [Hz] \n
+    ## Returns:
+    filtered_az - filtered vertical acceleration \n
+    filtered_ay - filtered horizontal (anterior-posterior) acceleration \n
+    """
     N = 4 # order
     fc = 20
     Wn = (2/fs)*fc
@@ -143,10 +162,10 @@ def calculate_gait_velocity2(t, az, peaks_ind, fs = 'assess', l = 0.89, number_o
 
 
 
-
-    h_list = []
-    args = []
-    le = 0
+    ### calculate displacement h from position dz
+    h_list = []     # list of displacements h for each step
+    args = []       # list of indices 
+    le = 0          # length of indices 
 
 
     peaks_ind_last = np.append(peaks_ind, len(t)-1)
@@ -170,7 +189,8 @@ def calculate_gait_velocity2(t, az, peaks_ind, fs = 'assess', l = 0.89, number_o
                     h_index = np.argmax(dz[half:]) + half
 
 
-        h = abs(dz[h_index]) + abs(min(dz))
+        #h = abs(dz[h_index]) + abs(min(dz))
+        h = abs(dz[h_index] - min(dz))
 
 
         h_list.append(h)
@@ -182,21 +202,16 @@ def calculate_gait_velocity2(t, az, peaks_ind, fs = 'assess', l = 0.89, number_o
     h_list = np.array(h_list)
 
     ### calculating step length
-
     step_lengths = 2*np.sqrt(2*h_list*l - h_list**2)
-    #print(step_lengths)
-    #print("Distance: ", np.sum(step_lengths))
-    #print(h_list)
+
 
     ### calculating step time
     step_times = np.diff(t[peaks_ind_last])
-    #print(t_resampled[peaks_ind])
-    #print(step_times)
+
 
     ## calculating gait velocity
-    #print(len(step_lengths))
     gait_v = (step_lengths / step_times)
-    #print(gait_v)
+
 
 
 
