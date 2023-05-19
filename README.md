@@ -16,6 +16,7 @@ Zwracana jest średnia, odchylenie standardowe, korelacja Pearsona oraz wykres B
 evaluate_batch.py - pozwala na wczytanie jednej partii danych wejściowych oraz danych referencyjnych np. tylko dla chodu wolnego. </br>
 Ewaluacja przebiega tak samo, jak w pliku evaluate_all.py. </br>
 myUtils.py - plik zawiera bibliotekę funkcji używanych przez inne pliki projektu. </br>
+VisualizeSteps.py - plik odpowiedzialny za wizualizację pośrednich kroków wykonywania algorytmu. </br>
 
 # Źródła
 Algorytm został opracowany na podstawie: </br>
@@ -41,7 +42,7 @@ It returns mean, std, Pearson correlation and Bland-Altman plot. </br>
 evaluate_batch.py - file for evaluation batch of the data, for example only for "slow gait" batch. </br>
 Evaluation process is the same as in the evaluate_all.py. </br>
 myUtils.py - file with functions' library used in the project</br>
-
+VisualizeSteps.py - file responsible for visualization of intermediate steps of the algorithm. </br>
 
 # Sources
 Algorithm was based on solution proposed in: </br>
