@@ -47,33 +47,21 @@ for directory in dirs:
     accel, t_resampled = resample(accel, fs)
     orient, _ = resample(orient, fs)
 
-    # cut data from start to 0.5 s
-    #cut = t_resampled[t_resampled == 0.5].index[0]
-    #data = data[cut:]
-    #t_resampled = t_resampled[cut:]
 
     # change orientation
     coords = [accel['x'], accel['y'], accel['z']]
     coords = np.transpose(coords)
-    #quats = [orient['qx'], orient['qy'], orient['qz'], orient['qw']]
-    #quats = np.transpose(quats)
+
     euler = [orient['pitch'], orient['roll'], orient['yaw']]
     euler = np.transpose(euler)
     euler[:,2] = 0 # yaw equal to 0 to avoid changing direction of acceleration in y axis
 
 
-
-    # if orient['yaw'].mean() < 0:
-    #     orient_factor = -1
-    # else:
-    #     orient_factor = -1
-
     new_coords = change_orientation(coords, euler)
-    #new_coords = coords
     az = new_coords[:,2] 
     #ay = orient_factor*new_coords[:,1] # orient factor because of specific phone coordinate system
     ay = new_coords[:,1] 
-    #ay = -new_coords[:,0] # take x instead of y
+
 
 
     ### filtration
@@ -111,10 +99,14 @@ aprox = results["Aprox gait v"]
 real = results["Real gait v"]
 
 
+mean_real = np.mean(real)
+mean_aprox = np.mean(aprox)
 
+print("\nReal mean = %.3f, Real std = %.3f" % (mean_real, np.std(real)))
+print("Aprox mean = %.3f, Aprox std = %.3f" % (mean_aprox, np.std(aprox)))
 
-print("\nReal mean = %.3f, Real std = %.3f" % (np.mean(real),np.std(real)))
-print("Aprox mean = %.3f, Aprox std = %.3f" % (np.mean(aprox),np.std(aprox)))
+mean_err = abs(mean_real - mean_aprox)
+print("Mean error = %.3f, Mean relative error = %.3f %%" % (mean_err, (mean_err/mean_real)*100))
 print(stats.pearsonr(aprox, real))
 
 

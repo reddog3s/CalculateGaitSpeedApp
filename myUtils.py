@@ -6,6 +6,7 @@ from scipy.spatial.transform import Rotation as R
 
 def resample(data, fs, cutoff = 0.7):
     """
+    Resample and optionally cut first samples from data.
     ## Arguments:
     data - dataframe to resample \n
     fs - sampling frequency [Hz] \n
@@ -33,10 +34,10 @@ def resample(data, fs, cutoff = 0.7):
     data['time_resampled'] = (data.index - pandas.Timestamp("1970-01-01")) // pandas.Timedelta(unit_of_conv_str) # conversion from new date to unix time
     #t_resampled = data['time_resampled'] 
     #t_resampled = t_resampled - data['time_resampled'][0] #normalization of time (start from 0)
-    data['time_resampled'] = data['time_resampled'] - data['time_resampled'][0]
+    data['time_resampled'] -= data['time_resampled'][0] #normalization of time (start from 0)
 
     cutoff = cutoff / unit_of_conv
-    df_closest = data.iloc[(data['time_resampled']-cutoff).abs().argsort()[:1]]
+    df_closest = data.iloc[(data['time_resampled']-cutoff).abs().argsort()[:1]] # find time closest to cutoff in data
     closest_list = df_closest['time_resampled'].tolist()
     cut_data = data[data['time_resampled'] > closest_list[0]]
     t_resampled = cut_data['time_resampled'] 
@@ -106,47 +107,55 @@ def find_max_displacement(dz_steps, peaks_ind):
     """
     Calculate max displacement h for every step in dz_steps
     ## Arguments:
-    dz_steps - list steps' posistions, every element (step) is a vector of position values \n
+    dz_steps - list steps' posistions, every element (step interval) is a vector of position values \n
     peaks_ind - indices of peaks \n
     ## Returns:
     h_list - list of max displacement for every step. Length is the same as dz_steps \n
     """
     h_list = []     # list of displacements h for each step
-    args = []       # list of indices 
-    le = 0          # length of indices 
+    h_indices = []       # list of indices of max values in each step interval 
+    indices_length = 0          # length of indices which have been already checked 
 
-    differences = np.diff(peaks_ind)
-    min_diff = np.min(differences)
+    differences = np.diff(peaks_ind) # every step's length in number of samples (indices)
+    min_diff = np.min(differences)   # shortest gap between peaks = shortest step
 
     for dz in dz_steps:
 
-        h_index = np.argmax(dz)
+        h_index = np.argmax(dz) # index of max value for current step interval dz
 
-        if args:
-            if (h_index - (args[-1] - le)) < min_diff:
-                if dz[h_index] > previous_dz[args[-1]-le]:
-                    args[-1] = h_index + le
+        # if it's first iteration, skip that part
+        if h_indices:
 
+            # if difference between h_index and previous max value's index is less than min_diff, 
+            # make sure that current max value is valid
+            if (h_index - (h_indices[-1] - indices_length)) < min_diff:
+
+                # if current max value is higher than previous one
+                if dz[h_index] > previous_dz[h_indices[-1]-indices_length]:
+                    
+                    # assign current value to the previous one
+                    h_indices[-1] = h_index + indices_length
+
+                    # skip first half of current interval and search for max value in second half
                     half = int(len(dz)/2)
                     h_index = np.argmax(dz[half:]) + half
-                else:
-                    half = int(len(dz)/2)
-                    h_index = np.argmax(dz[half:]) + half
+                #else:
+                    # if current max value is lower than previous one
+                    # skip first half of current interval and search for max value in second half
+                half = int(len(dz)/2)
+                h_index = np.argmax(dz[half:]) + half
 
 
-        #h = abs(dz[h_index]) + abs(min(dz))
+        # displacement calculated as absolute value of max and min postion value in current step interval
         h = abs(dz[h_index] - min(dz))
 
 
         h_list.append(h)
-        args.append(h_index + le)
-        le += len(dz)
+        h_indices.append(h_index + indices_length)
+        indices_length += len(dz)
         previous_dz = dz
 
-
-    h_list = np.array(h_list)
-
-    return h_list
+    return np.array(h_list)
  
 def calculate_gait_velocity2(t, az, peaks_ind, fs = 'assess', l = 0.89, number_of_steps = 2):
     """
@@ -204,50 +213,12 @@ def calculate_gait_velocity2(t, az, peaks_ind, fs = 'assess', l = 0.89, number_o
         dz_steps_filtered.append(signal.sosfiltfilt(filt, step))
 
 
-
-
-
     # ### calculate displacement h from position dz
 
     peaks_ind_last = np.append(peaks_ind, len(t)-1)
     peaks_ind_last = np.insert(peaks_ind_last, 0, 0)
 
     h_list = find_max_displacement(dz_steps_filtered, peaks_ind_last)
-    # differences = np.diff(peaks_ind_last)
-    # min_diff = np.min(differences)
-
-
-    # h_list = []     # list of displacements h for each step
-    # args = []       # list of indices 
-    # le = 0          # length of indices 
-
-    # for dz in dz_steps_filtered:
-
-    #     h_index = np.argmax(dz)
-
-    #     if args:
-    #         if (h_index - (args[-1] - le)) < min_diff:
-    #             if dz[h_index] > previous_dz[args[-1]-le]:
-    #                 args[-1] = h_index + le
-
-    #                 half = int(len(dz)/2)
-    #                 h_index = np.argmax(dz[half:]) + half
-    #             else:
-    #                 half = int(len(dz)/2)
-    #                 h_index = np.argmax(dz[half:]) + half
-
-
-    #     #h = abs(dz[h_index]) + abs(min(dz))
-    #     h = abs(dz[h_index] - min(dz))
-
-
-    #     h_list.append(h)
-    #     args.append(h_index + le)
-    #     le += len(dz)
-    #     previous_dz = dz
-
-
-    # h_list = np.array(h_list)
 
     ### calculating step length
     step_lengths = 2*np.sqrt(2*h_list*l - h_list**2)
@@ -261,9 +232,6 @@ def calculate_gait_velocity2(t, az, peaks_ind, fs = 'assess', l = 0.89, number_o
     gait_v = (step_lengths / step_times)
 
 
-
-
-    
     ## if number of steps is 'all', calcutate average across all steps
     if number_of_steps == 'all':
         avg_gait_v = np.mean(gait_v)
