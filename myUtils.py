@@ -103,17 +103,18 @@ def getDivisors(n):
         i = i + 1
     return divs
 
-def find_max_displacement(dz_steps, peaks_ind):
+def find_max_displacement(dz_steps, peaks_ind, return_indices = False):
     """
     Calculate max displacement h for every step in dz_steps
     ## Arguments:
-    dz_steps - list steps' posistions, every element (step interval) is a vector of position values \n
+    dz_steps - list steps' positions, every element (step interval) is a vector of position values \n
     peaks_ind - indices of peaks \n
+    return_indices - To return dmax indices or not \n
     ## Returns:
     h_list - list of max displacement for every step. Length is the same as dz_steps \n
     """
     h_list = []     # list of displacements h for each step
-    h_indices = []       # list of indices of max values in each step interval 
+    dmax_indices = []       # list of indices of max values in each step interval 
     indices_length = 0          # length of indices which have been already checked 
 
     differences = np.diff(peaks_ind) # every step's length in number of samples (indices)
@@ -121,41 +122,44 @@ def find_max_displacement(dz_steps, peaks_ind):
 
     for dz in dz_steps:
 
-        h_index = np.argmax(dz) # index of max value for current step interval dz
+        dmax_index = np.argmax(dz) # index of max value for current step interval dz
 
         # if it's first iteration, skip that part
-        if h_indices:
+        if dmax_indices:
 
             # if difference between h_index and previous max value's index is less than min_diff, 
             # make sure that current max value is valid
-            if (h_index - (h_indices[-1] - indices_length)) < min_diff:
+            if ((dmax_index + indices_length) - dmax_indices[-1]) < min_diff:
 
                 # if current max value is higher than previous one
-                if dz[h_index] > previous_dz[h_indices[-1]-indices_length]:
+                if dz[dmax_index] > previous_dz[dmax_indices[-1]-indices_length]:
                     
                     # assign current value to the previous one
-                    h_indices[-1] = h_index + indices_length
+                    dmax_indices[-1] = dmax_index + indices_length
 
                     # skip first half of current interval and search for max value in second half
                     half = int(len(dz)/2)
-                    h_index = np.argmax(dz[half:]) + half
+                    dmax_index = np.argmax(dz[half:]) + half
                 #else:
                     # if current max value is lower than previous one
                     # skip first half of current interval and search for max value in second half
                 half = int(len(dz)/2)
-                h_index = np.argmax(dz[half:]) + half
+                dmax_index = np.argmax(dz[half:]) + half
 
 
-        # displacement calculated as absolute value of max and min postion value in current step interval
-        h = abs(dz[h_index] - min(dz))
+        # displacement calculated as absolute value of max and min position value in current step interval
+        h = abs(dz[dmax_index] - min(dz))
 
 
         h_list.append(h)
-        h_indices.append(h_index + indices_length)
+        dmax_indices.append(dmax_index + indices_length)
         indices_length += len(dz)
         previous_dz = dz
-
-    return np.array(h_list)
+    
+    if return_indices:
+        return np.array(h_list), dmax_indices
+    else:
+        return np.array(h_list)
  
 def calculate_gait_velocity2(t, az, peaks_ind, fs = 'assess', l = 0.89, number_of_steps = 2):
     """
