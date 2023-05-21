@@ -12,8 +12,9 @@ from myUtils import find_max_displacement
 
 
 ### loading data
-num_dir = 2
-base_path = os.path.join(os.path.abspath(os.getcwd()),'10m','fast')
+batch_name = 'fast' # name of the batch (medium, fast, slow) 
+num_dir = 2 # number of measurement
+base_path = os.path.join(os.path.dirname( __file__ ), os.pardir, 'DATA', batch_name)
 dirs = [ name for name in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, name)) ] #list only directories
 path = os.path.join(base_path, dirs[num_dir],'Accelerometer.csv')
 

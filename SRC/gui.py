@@ -11,7 +11,7 @@ from myUtils import change_orientation
 from scipy import signal
 
 # a default directory where a file is searched
-working_directory = os.path.join(os.getcwd(),'data')
+working_directory = os.path.join(os.path.dirname( __file__ ), os.pardir, 'DATA')
 
 
 

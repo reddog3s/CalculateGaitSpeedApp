@@ -14,8 +14,9 @@ import numpy as np
 fs = 100 # sampling frequency
 l = 0.89 # leg length in meters [m]
 number_of_meters = 7 # distance in meters [m]
+batch_name = 'medium' # name of the batch (medium, fast, slow)
 
-base_path = os.path.join(os.path.abspath(os.getcwd()),'10m','medium')
+base_path = os.path.join(os.path.dirname( __file__ ), os.pardir, 'DATA', batch_name)
 
 
 dirs = [ name for name in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, name)) ] #list only directories

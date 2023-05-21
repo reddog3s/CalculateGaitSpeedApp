@@ -15,7 +15,7 @@ fs = 100 # sampling frequency
 l = 0.89 # leg length in meters [m]
 number_of_meters = 7 # distance in meters [m]
 
-base_path = os.path.join(os.path.abspath(os.getcwd()),'10m')
+base_path = os.path.join(os.path.dirname( __file__ ), os.pardir, 'DATA')
 
 dirs = []
 for cat in ['slow', 'medium', 'fast']:
