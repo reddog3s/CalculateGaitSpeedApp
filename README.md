@@ -24,6 +24,10 @@ P. Silsupadol, P. Prupetkaew, T. Kamnardsiri and V. Lugade, "Smartphone-Based As
 Analiza Blanda-Altmana została wykonana na podstawie: https://rowannicholls.github.io/python/statistics/agreement/bland_altman.html </br>
 Pozostałe źródła są podane w sprawozdaniu z realizacji projektu.
 
+# Autorzy:
+Wojciech Gajewski - implementacja algorytmu,<br>
+Ewelina Dobosz - GUI.
+
 # [ENG]
 Code repository for Calculate Gait Speed App project created for the "Basics of telemedicine" university course. </br>
 App is able to calculate number of steps and gait speed of the user using accelerometer and orientation data.
@@ -49,3 +53,7 @@ Algorithm was based on solution proposed in: </br>
 P. Silsupadol, P. Prupetkaew, T. Kamnardsiri and V. Lugade, "Smartphone-Based Assessment of Gait During Straight Walking, Turning, and Walking Speed Modulation in Laboratory and Free-Living Environments," in IEEE Journal of Biomedical and Health Informatics, vol. 24, no. 4, pp. 1188-1195, April 2020, doi: 10.1109/JBHI.2019.2930091. </br>
 Bland-Altman analysis was based on: https://rowannicholls.github.io/python/statistics/agreement/bland_altman.html </br>
 Other sources are available in report from project's realization.
+
+# Authors:
+Wojciech Gajewski - implementing algorithm,<br>
+Ewelina Dobosz - GUI.
